@@ -1,0 +1,45 @@
+import random as rd
+import numpy as np
+#posicao inicial(Pi): cada atributo do individuo // 2
+#posicao aleatoria(Pa): individuo inicial
+#numero de particulas
+#velocidade inicial(Vi): pa - pi
+#posicao: individuo
+#velocidade nova(Vn): 
+#posicao nova(Pn): individuo + Vn
+#numero de interacoes(i)
+#melhor posição local(Pl): cada particula tem
+#melhor posição global(Pg): Só uma tem
+
+    
+class PSO:
+    def __init__(self, num, int, model):
+        self.num = num
+        self.int = int
+        self.model = model
+
+    def gerarPosicoesAleatorias(self):
+        self.listaP = []
+        i = 0
+        if(self.model == 0):
+            while(i != self.num - 1):
+                pos = [rd.randint(3, 150), rd.randint(0,2), rd.uniform(0.01, 0.9)]
+                self.listaP.append(pos)
+                self.Pinicial = [76, 1, 0.55]
+                i+=1
+        return self.listaP
+
+    def calcularVIniciais(self):
+        self.listaV = []
+        listaPCopy = np.array(self.listaP)
+        self.listaP = np.array(self.listaP)
+        np.set_printoptions(formatter={'float' : "{: 0.2f}".format})
+        print(listaPCopy)
+        for item in self.listaP:
+            sub = item - self.Pinicial                
+            self.listaV.append(sub)
+        print(self.listaV)    
+pso = PSO(20, 10, 0)
+print(pso.gerarPosicoesAleatorias())
+print("------------------------------\n---------------------------")
+print(pso.calcularVIniciais())
