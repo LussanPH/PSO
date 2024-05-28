@@ -10,12 +10,22 @@ import numpy as np
 #numero de interacoes(i)
 #melhor posição local(Pl): cada particula tem
 #melhor posição global(Pg): Só uma tem
+class Particula:
+    def __init__(self, v, pA, mL):
+        self.v = v
+        self.pA = pA
+        self.mL = mL
+        self.Vn = None
+        self.c1 = rd.uniform(0, 3)
+        self.c2 = rd.uniform(0, 3)
 
+    def atualizarVelocidade(self, mG):
+        self.Vn = self.v + self.c1(self.mL - self.pA) + self.c2(mG - self.pA)       
     
 class PSO:
-    def __init__(self, num, int, model):
+    def __init__(self, num, enx, model):
         self.num = num
-        self.int = int
+        self.enx = enx
         self.model = model
 
     def gerarPosicoesAleatorias(self):
@@ -38,7 +48,10 @@ class PSO:
         for item in self.listaP:
             sub = item - self.Pinicial                
             self.listaV.append(sub)
-        print(self.listaV)    
+        print(self.listaV) 
+
+    def gerarParticula():
+
 pso = PSO(20, 10, 0)
 print(pso.gerarPosicoesAleatorias())
 print("------------------------------\n---------------------------")
