@@ -1,5 +1,8 @@
 import random as rd
 import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import metrics
 #posicao inicial(Pi): cada atributo do individuo // 2
 #posicao aleatoria(Pa): individuo inicial
 #numero de particulas
@@ -11,22 +14,29 @@ import numpy as np
 #melhor posição local(Pl): cada particula tem
 #melhor posição global(Pg): Só uma tem
 class Particula:
-    def __init__(self, v, pA, mL):
+    def __init__(self, v, pA):
         self.v = v
         self.pA = pA
-        self.mL = mL
+        self.mL = None
         self.Vn = None
         self.c1 = rd.uniform(0, 3)
         self.c2 = rd.uniform(0, 3)
+
+    def melhorLocal(self):
+        if(pso.avaliacao(self.pA) > pso.avaliacao(self.mL)):
+            self.mL = self.pA    
 
     def atualizarVelocidade(self, mG):
         self.Vn = self.v + self.c1(self.mL - self.pA) + self.c2(mG - self.pA)       
     
 class PSO:
-    def __init__(self, num, enx, model):
+    def __init__(self, num, enx, model, dados):
         self.num = num
         self.enx = enx
         self.model = model
+        self.pA = None
+        self.mL = None
+        self.dados = dados
 
     def gerarPosicoesAleatorias(self):
         self.listaP = []
@@ -48,11 +58,27 @@ class PSO:
         for item in self.listaP:
             sub = item - self.Pinicial                
             self.listaV.append(sub)
-        print(self.listaV) 
+        print(self.listaV)
 
-    def gerarParticula():
+    def gerarXy(self):
+        self.X = self.dados.iloc[:, :-1].values #pega todas as colunas menos o target
+        self.y = self.dados.iloc[:, -1].values  #pega apenas a coluna do target
+        self.X_treino, self.X_teste, self.y_treino, self.y_teste = train_test_split(self.X, self.y, test_size=0.3, random_state=1) 
 
-pso = PSO(20, 10, 0)
+    def avaliacao(self, posicao):
+        if(self.model == 0):
+            tradutor = {0:"gini", 1:"entropy", 2:"log_loss"}
+            arvore = DecisionTreeClassifier(max_depth=posicao[0], criterion=tradutor[posicao[1]], min_samples_split=posicao[2])
+            arvore.fit(self.X_treino, self.y_treino)
+            previsao = arvore.predict(self.X_teste)
+            acuracia = metrics.accuracy_score(self.y_teste, previsao)
+            return acuracia
+    
+    def gerarParticula(self, v, pA):
+        p = Particula(v, pA)
+        return p
+
+pso = PSO(10, 10, 0, "diabetes (1).csv")
 print(pso.gerarPosicoesAleatorias())
 print("------------------------------\n---------------------------")
-print(pso.calcularVIniciais())
+pso.calcularVIniciais()
