@@ -15,7 +15,7 @@ class Particula:
         self.pN = None        
 
     def melhorLocal(self):
-        if(self.mL != None):
+        if(type(self.mL) != type(None)):
             if(pso.avaliacao(self.pA) > pso.avaliacao(self.mL)):
                 self.mL = self.pA   
             self.mLAccuracy = pso.avaliacao(self.mL)    
@@ -23,7 +23,11 @@ class Particula:
         else:
             self.mL = self.pA 
             self.mLAccuracy = pso.avaliacao(self.mL)   
-            return self.mL           
+            return self.mL
+
+    def randomC(self):
+        self.c1 = rd.uniform(0, 3)
+        self.c2 = rd.uniform(0, 3)                  
 
     def atualizarVelocidade(self, mG):
         self.Vn = self.v + self.c1*(self.mL - self.pA) + self.c2*(mG - self.pA)
@@ -71,7 +75,7 @@ class PSO:
         self.gerarXy()
         if(self.model == 0):
             tradutor = {0.00:"gini", 1.00:"entropy", 2.00:"log_loss"}
-            arvore = DecisionTreeClassifier(max_depth=int(posicao[0]), criterion=tradutor[posicao[1]], min_samples_split=posicao[2])
+            arvore = DecisionTreeClassifier(max_depth=int(posicao[0]), criterion=tradutor[int(posicao[1])], min_samples_split=posicao[2])
             arvore.fit(self.X_treino, self.y_treino)
             previsao = arvore.predict(self.X_teste)
             acuracia = metrics.accuracy_score(self.y_teste, previsao)
@@ -89,33 +93,60 @@ class PSO:
         self.acuracia = 0
         for ml in mL:
             lista.append(self.avaliacao(ml))
+        print(lista)    
         for item in lista:
             if(item > maior):
                 maior = item
                 melhor = i
             i+=1
         self.acuracia = lista[melhor]        
-        return mL[melhor]        
+        return mL[melhor]   
+
+    def limitar(self, particula):
+        if(self.model == 0):
+            if(particula.pN[0] > 150 or particula.pN[0] < 3):
+                particula.pN[0] = rd.randint(3, 150)
+            if(particula.pN[1] > 2 or particula.pN[1] < 0):    
+                particula.pN[1] = rd.randint(0, 2)
+            if(particula.pN[2] > 0.9 or particula.pN[2] < 0.01):
+                particula.pN[2] = rd.uniform(0.01, 0.9)
     
     def gerarEnxame(self):  
         listaE = []
         listaML = []
         i = 0
+        j = 0
         while(i != self.num):
             listaE.append(self.gerarParticula(self.listaV[i], self.listaP[i]))
             listaML.append(listaE[i].melhorLocal())
-            i+=1
+            i+=1    
         i = 0    
         mG = self.gerarGlobal(listaML)
-        for particula in listaE:
-            particula.atualizarVelocidade(mG)
-            particula.posicaoNova()
-            print(particula," com acuracia: ",particula.mLAccuracy)
-        print("melhor global: ", mG, " com acuracia: ", self.acuracia)
+        while(j != self.enx):
+            if(j > 0):
+                listaML.clear()
+                while(i != self.num):
+                    listaML.append(listaE[i].melhorLocal())
+                    i+=1        
+            mG = self.gerarGlobal(listaML)    
+            for particula in listaE:    
+                particula.atualizarVelocidade(mG)
+                particula.posicaoNova()
+                self.limitar(particula)
+                particula.v = particula.Vn
+                particula.randomC()
+                particula.pA = particula.pN
+                print(particula," com acuracia: ",particula.mLAccuracy)
+            print("melhor global: ", mG, " com acuracia: ", self.acuracia)
+            print("--------------------------------------------------")
+            print("--------------------------------------------------")
+            print("--------------------------------------------------")
+            i=0
+            j+=1
            
 
 
-pso = PSO(10, 10, 0, "diabetes (1).csv")
+pso = PSO(10, 200, 0, "heart.csv")
 print(pso.gerarPosicoesAleatorias())
 print("------------------------------\n---------------------------")
 pso.calcularVIniciais()
