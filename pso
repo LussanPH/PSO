@@ -5,6 +5,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 import pandas
 class Particula:
     def __init__(self, v, pA):
@@ -86,7 +87,13 @@ class PSO:
                 pos = [rd.randint(1, 100), rd.randint(3, 150), rd.randint(0,2), rd.uniform(0.01, 0.9)]
                 self.listaP.append(pos)
                 self.Pinicial = [50, 76, 1, 0.55]
-                i+=1                   
+                i+=1
+        else:
+            while(i != self.num):
+                pos = [rd.uniform(0.1, 1), rd.randint(0, 3)]
+                self.listaP.append(pos)
+                self.Pinicial = [0.5, 2]
+                i+=1                           
         return self.listaP
 
     def calcularVIniciais(self):
@@ -123,6 +130,12 @@ class PSO:
             floresta.fit(self.X_treino, self.y_treino)
             previsao = floresta.predict(self.X_teste)
             acuracia = metrics.accuracy_score(self.y_teste, previsao)
+        else:
+            tradutor = {0.00:"linear", 1.00:"poly", 2.00:"rbf", 3.00:"sigmoid"}
+            svm = SVC(C=posicao[0], kernel=tradutor[int(posicao[1])])
+            svm.fit(self.X_treino, self.y_treino)
+            previsao = svm.predict(self.X_teste)
+            acuracia = metrics.accuracy_score(self.y_teste, previsao)    
         return acuracia
     def gerarParticula(self, v, pA):
         self.p = Particula(v, pA)
@@ -188,7 +201,7 @@ class PSO:
                 particula.pN[0] = vizinhos   
             if(particula.pN[1] > 1 or particula.pN[1] < 0):    
                 particula.pN[1] = rd.randint(0, 1)
-        if(self.model == 2):
+        elif(self.model == 2):
             if(particula.pN[0] > 100 or particula.pN[0] < 1):
                 particula.pN[0] = rd.randint(1, 100)
             if(particula.pN[1] > 150 or particula.pN[1] < 3):
@@ -196,7 +209,12 @@ class PSO:
             if(particula.pN[2] > 2 or particula.pN[2] < 0):    
                 particula.pN[2] = rd.randint(0, 2)
             if(particula.pN[3] > 0.9 or particula.pN[3] < 0.01):
-                particula.pN[3] = rd.uniform(0.01, 0.9)                  
+                particula.pN[3] = rd.uniform(0.01, 0.9)
+        else:
+            if(particula.pN[0] > 1 or particula.pN[0] < 0.1):
+                particula.pN[0] = rd.uniform(0.1, 1)
+            if(particula.pN[1] < 0 or particula.pN[1] > 3):
+                particula.pN[1] = rd.randint(0, 3)                          
     
     def gerarEnxame(self):  
         listaE = []
@@ -236,7 +254,7 @@ class PSO:
            
 
 
-pso = PSO(10, 3, 2, "diabetes (1).csv")
+pso = PSO(10, 50, 3, "diabetes (1).csv")
 print(pso.gerarPosicoesAleatorias())
 pso.gerarXy()
 print("------------------------------\n---------------------------")
